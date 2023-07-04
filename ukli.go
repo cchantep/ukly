@@ -168,9 +168,9 @@ func checkConfigFile(filePath, indent string) error {
 				lineLen,
 				trimmedLen,
 				firstNonWhite,
-				prevLineComment,
+				&prevLineComment,
 				&prevLineEmpty,
-				prevLineSectionDecl,
+				&prevLineSectionDecl,
 				&preventLineEmpty,
 				&expectingLineEmpty,
 				&danglingAssignation,
@@ -257,9 +257,9 @@ func checkNonCommentLine(
 	lineLen int,
 	trimmedLen int,
 	firstNonWhite byte,
-	prevLineComment bool,
+	prevLineComment *bool,
 	prevLineEmpty *bool,
-	prevLineSectionDecl bool,
+	prevLineSectionDecl *bool,
 	preventLineEmpty *bool,
 	expectingLineEmpty *bool,
 	danglingAssignation *bool,
@@ -310,7 +310,7 @@ func checkNonCommentLine(
 			if i+1 == lineLen {
 				// Section start at end of line
 
-				if !*prevLineEmpty && !prevLineComment && !prevLineSectionDecl && lineNumber > 1 {
+				if !*prevLineEmpty && !*prevLineComment && !*prevLineSectionDecl && lineNumber > 1 {
 					// No blank line before a line declaring a section
 					return fmt.Errorf("[E004] Missing blank line before section declaration at line %d", lineNumber)
 				}
@@ -361,7 +361,7 @@ func checkNonCommentLine(
 	}
 
 	*prevLineEmpty = false
-	prevLineComment = false
+	*prevLineComment = false
 
 	// Check for consistent indentation
 	if currIndentLevel != *indentLevel {
@@ -371,7 +371,7 @@ func checkNonCommentLine(
 	}
 
 	// Whether current line doesn't contain a section declaration
-	prevLineSectionDecl = nextLineChange > 0
+	*prevLineSectionDecl = nextLineChange > 0
 
 	*indentLevel += nextLineChange
 

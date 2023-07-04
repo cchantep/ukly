@@ -45,9 +45,14 @@ func TestCheckConfigFile(t *testing.T) {
 			expected: fmt.Errorf("[E003] Expecting a blank line after nested section at line 4"),
 		},
 		{
-			file:     "e004.conf",
+			file:     "e004a.conf",
 			indent:   "    ",
 			expected: fmt.Errorf("[E004] Missing blank line before section declaration at line 2"),
+		},
+		{
+			file:     "e004b.conf",
+			indent:   "  ",
+			expected: nil,
 		},
 		{
 			file:     "e005.conf",
