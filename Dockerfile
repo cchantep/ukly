@@ -6,8 +6,8 @@ RUN cd /tmp && go build ukli.go
 
 FROM alpine:3.17.4
 
-COPY --from=go-builder /tmp/ukli /tmp/ukli
+COPY --from=go-builder /tmp/ukli /usr/local/bin/
 
-RUN chmod a+x /tmp/ukli
+RUN chmod a+x /usr/local/bin/ukli
 
-ENTRYPOINT ["/tmp/ukli"]
+ENTRYPOINT ["ukli"]
