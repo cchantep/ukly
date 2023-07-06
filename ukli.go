@@ -140,6 +140,11 @@ func checkConfigFile(filePath, indent string) error {
 			// Skip further check for blank lines
 		}
 
+		if len(strings.TrimSpace(line)) == 0 && lineLen > 0 {
+			// Whitespace characters on blank line
+			return fmt.Errorf("[E006] Whitespace characters must be trimmed on blank line %d", lineNumber)
+		}
+
 		// ---
 
 		// First non-whitespace character

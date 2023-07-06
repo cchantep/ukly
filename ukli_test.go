@@ -60,6 +60,11 @@ func TestCheckConfigFile(t *testing.T) {
 			expected: fmt.Errorf("[E005] Indentation mismatch at line 2 (0 != 1)"),
 		},
 		{
+			file:     "e006.conf",
+			indent:   "\t",
+			expected: fmt.Errorf("[E006] Whitespace characters must be trimmed on blank line 2"),
+		},
+		{
 			file:     "f001a.conf",
 			indent:   "  ",
 			expected: fmt.Errorf("[F001] Unbalanced '}' at line 7"),
