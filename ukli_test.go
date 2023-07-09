@@ -55,6 +55,16 @@ func TestCheckConfigFile(t *testing.T) {
 			expected: nil,
 		},
 		{
+			file:     "e004c.conf",
+			indent:   "  ",
+			expected: nil,
+		},
+		{
+			file:     "e004d.conf",
+			indent:   "  ",
+			expected: nil,
+		},
+		{
 			file:     "e005.conf",
 			indent:   "\t",
 			expected: fmt.Errorf("[E005] Indentation mismatch at line 2 (0 != 1)"),

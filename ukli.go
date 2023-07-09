@@ -315,7 +315,7 @@ func checkNonCommentLine(
 			if i+1 == lineLen {
 				// Section start at end of line
 
-				if !*prevLineEmpty && !*prevLineComment && !*prevLineSectionDecl && lineNumber > 1 {
+				if *inBracket == 0 && !*prevLineEmpty && !*prevLineComment && !*prevLineSectionDecl && lineNumber > 1 {
 					// No blank line before a line declaring a section
 					return fmt.Errorf("[E004] Missing blank line before section declaration at line %d", lineNumber)
 				}
