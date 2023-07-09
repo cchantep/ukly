@@ -114,10 +114,16 @@ func checkConfigFile(
 	prevLineSectionDecl := false
 	expectingLineEmpty := false
 	preventLineEmpty := false
+	ignoreNextLine := false
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNumber++
+
+		if ignoreNextLine {
+			ignoreNextLine = false
+			continue
+		}
 
 		// Process line characters after the indent
 		lineLen := len(line)
@@ -165,6 +171,18 @@ func checkConfigFile(
 			// Skip comment lines starting with '#' or '//'
 			prevLineEmpty = false
 			prevLineComment = true
+
+			comment := trimmedLine[1:]
+
+			if firstNonWhite != '#' {
+				comment = trimmedLine[2:]
+			}
+
+			comment = strings.TrimSpace(comment)
+
+			if comment == "ukli-ignore-next-line" {
+				ignoreNextLine = true
+			}
 		} else {
 			// Handling non comment line
 			if expectingLineEmpty && firstNonWhite != '}' && firstNonWhite != ']' {
@@ -226,7 +244,8 @@ func parseConfigArgs() (Config, error) {
 	excludeFiles := flag.String(
 		"exclude-file", "", "Exclude file pattern (comma separated for multiple patterns)")
 
-	lineMaxLength := flag.Uint("line-max-length", 100, "Maximum line length (default: 100)")
+	lineMaxLength := flag.Uint(
+		"line-max-length", 80, "Maximum line length (default: 80)")
 
 	// Parse command line arguments
 	flag.Parse()

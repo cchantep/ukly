@@ -88,10 +88,16 @@ func TestCheckConfigFile(t *testing.T) {
 			expected: fmt.Errorf("[E006] Whitespace characters must be trimmed on blank line 2"),
 		},
 		{
-			file:     "e007.conf",
+			file:     "e007a.conf",
 			indent:   "  ",
 			maxLine:  20,
 			expected: fmt.Errorf("[E007] Line 1 is too long: 70 > 20"),
+		},
+		{
+			file:     "e007b.conf",
+			indent:   "  ",
+			maxLine:  40,
+			expected: fmt.Errorf("[E007] Line 4 is too long: 90 > 40"),
 		},
 		{
 			file:     "f001a.conf",
