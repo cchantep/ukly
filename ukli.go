@@ -66,7 +66,7 @@ func main() {
 
 			// ---
 
-			if err := checkConfigFile(path, config.Indent); err != nil {
+			if err := checkConfigFile(path, config.Indent, config.LineMaxLen); err != nil {
 				fmt.Fprintf(os.Stderr, "File '%s' is not properly formatted: %v\n", path, err)
 
 				fileErrors++
@@ -89,7 +89,11 @@ func main() {
 	}
 }
 
-func checkConfigFile(filePath, indent string) error {
+func checkConfigFile(
+	filePath string,
+	indent string,
+	lineMaxLen uint,
+) error {
 	file, err := os.Open(filePath)
 
 	if err != nil {
@@ -110,17 +114,27 @@ func checkConfigFile(filePath, indent string) error {
 	prevLineSectionDecl := false
 	expectingLineEmpty := false
 	preventLineEmpty := false
+	ignoreNextLine := false
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNumber++
 
-		// TODO: Check no trailing space with trimRight
+		if ignoreNextLine {
+			ignoreNextLine = false
+			continue
+		}
 
 		// Process line characters after the indent
+		lineLen := len(line)
+
+		if lineLen > int(lineMaxLen) {
+			return fmt.Errorf("[E007] Line %d is too long: %d > %d",
+				lineNumber, lineLen, lineMaxLen)
+		}
+
 		trimmedLine := strings.TrimLeft(line, indent)
 		trimmedLen := len(trimmedLine)
-		lineLen := len(line)
 
 		// Check for blank lines
 		if trimmedLen == 0 {
@@ -140,6 +154,11 @@ func checkConfigFile(filePath, indent string) error {
 			// Skip further check for blank lines
 		}
 
+		if len(strings.TrimSpace(line)) == 0 && lineLen > 0 {
+			// Whitespace characters on blank line
+			return fmt.Errorf("[E006] Whitespace characters must be trimmed on blank line %d", lineNumber)
+		}
+
 		// ---
 
 		// First non-whitespace character
@@ -152,6 +171,18 @@ func checkConfigFile(filePath, indent string) error {
 			// Skip comment lines starting with '#' or '//'
 			prevLineEmpty = false
 			prevLineComment = true
+
+			comment := trimmedLine[1:]
+
+			if firstNonWhite != '#' {
+				comment = trimmedLine[2:]
+			}
+
+			comment = strings.TrimSpace(comment)
+
+			if comment == "ukli-ignore-next-line" {
+				ignoreNextLine = true
+			}
 		} else {
 			// Handling non comment line
 			if expectingLineEmpty && firstNonWhite != '}' && firstNonWhite != ']' {
@@ -197,6 +228,7 @@ type Config struct {
 	FileExtension  string
 	DirectoryPaths []string
 	ExcludeFiles   []*regexp.Regexp
+	LineMaxLen     uint
 }
 
 // Create config object from CLI arguments
@@ -204,13 +236,16 @@ func parseConfigArgs() (Config, error) {
 	// Define flags
 	help := flag.Bool("help", false, "Print this help")
 
-	indent := flag.String("indent", "  ", "Indentation string")
+	indent := flag.String("indent", "  ", "Indentation string (default: '  ')")
 
 	fileExtension := flag.String(
 		"file-extension", "conf", "File extension")
 
 	excludeFiles := flag.String(
 		"exclude-file", "", "Exclude file pattern (comma separated for multiple patterns)")
+
+	lineMaxLength := flag.Uint(
+		"line-max-length", 80, "Maximum line length (default: 80)")
 
 	// Parse command line arguments
 	flag.Parse()
@@ -246,6 +281,7 @@ func parseConfigArgs() (Config, error) {
 		FileExtension:  *fileExtension,
 		DirectoryPaths: directoryPaths,
 		ExcludeFiles:   excludeRegexps,
+		LineMaxLen:     *lineMaxLength,
 	}, nil
 }
 
@@ -310,7 +346,7 @@ func checkNonCommentLine(
 			if i+1 == lineLen {
 				// Section start at end of line
 
-				if !*prevLineEmpty && !*prevLineComment && !*prevLineSectionDecl && lineNumber > 1 {
+				if *inBracket == 0 && !*prevLineEmpty && !*prevLineComment && !*prevLineSectionDecl && lineNumber > 1 {
 					// No blank line before a line declaring a section
 					return fmt.Errorf("[E004] Missing blank line before section declaration at line %d", lineNumber)
 				}
