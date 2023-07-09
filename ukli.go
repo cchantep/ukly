@@ -66,7 +66,7 @@ func main() {
 
 			// ---
 
-			if err := checkConfigFile(path, config.Indent); err != nil {
+			if err := checkConfigFile(path, config.Indent, config.LineMaxLen); err != nil {
 				fmt.Fprintf(os.Stderr, "File '%s' is not properly formatted: %v\n", path, err)
 
 				fileErrors++
@@ -89,7 +89,11 @@ func main() {
 	}
 }
 
-func checkConfigFile(filePath, indent string) error {
+func checkConfigFile(
+	filePath string,
+	indent string,
+	lineMaxLen uint,
+) error {
 	file, err := os.Open(filePath)
 
 	if err != nil {
@@ -115,12 +119,16 @@ func checkConfigFile(filePath, indent string) error {
 		line := scanner.Text()
 		lineNumber++
 
-		// TODO: Check no trailing space with trimRight
-
 		// Process line characters after the indent
+		lineLen := len(line)
+
+		if lineLen > int(lineMaxLen) {
+			return fmt.Errorf("[E007] Line %d is too long: %d > %d",
+				lineNumber, lineLen, lineMaxLen)
+		}
+
 		trimmedLine := strings.TrimLeft(line, indent)
 		trimmedLen := len(trimmedLine)
-		lineLen := len(line)
 
 		// Check for blank lines
 		if trimmedLen == 0 {
@@ -202,6 +210,7 @@ type Config struct {
 	FileExtension  string
 	DirectoryPaths []string
 	ExcludeFiles   []*regexp.Regexp
+	LineMaxLen     uint
 }
 
 // Create config object from CLI arguments
@@ -209,13 +218,15 @@ func parseConfigArgs() (Config, error) {
 	// Define flags
 	help := flag.Bool("help", false, "Print this help")
 
-	indent := flag.String("indent", "  ", "Indentation string")
+	indent := flag.String("indent", "  ", "Indentation string (default: '  ')")
 
 	fileExtension := flag.String(
 		"file-extension", "conf", "File extension")
 
 	excludeFiles := flag.String(
 		"exclude-file", "", "Exclude file pattern (comma separated for multiple patterns)")
+
+	lineMaxLength := flag.Uint("line-max-length", 100, "Maximum line length (default: 100)")
 
 	// Parse command line arguments
 	flag.Parse()
@@ -251,6 +262,7 @@ func parseConfigArgs() (Config, error) {
 		FileExtension:  *fileExtension,
 		DirectoryPaths: directoryPaths,
 		ExcludeFiles:   excludeRegexps,
+		LineMaxLen:     *lineMaxLength,
 	}, nil
 }
 
