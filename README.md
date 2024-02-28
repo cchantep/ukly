@@ -162,6 +162,49 @@ section1 {
 }
 ```
 
+**E006**
+
+Whitespace characters must be trimmed.
+
+**E007**
+
+Line is too long
+
+*Example:*
+
+Raised for:
+
+```
+another-very-long-line: "this-one-is-not-ignore-as-there-is-not-special-comment-before-it"
+```
+
+Fix:
+
+Either split the line or reduce its content.
+
+**E008**
+
+Unexpected `{` or `[`;
+Must follow either a space or a `$`, and if not a `$` a letter or a number must be found before.
+
+*Example:*
+
+Raised for:
+
+```
+lorem{
+  ipsum: 1
+}
+```
+
+Fix:
+
+```
+lorem {
+  ipsum: 1
+}
+```
+
 ### Additional messages
 
 Even if ukli doesn't intend on semantic validation of the configuration files, while checking the format it assume some rules, and will raise errors for a file that doesn't comply with.
