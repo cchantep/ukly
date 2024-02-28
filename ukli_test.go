@@ -100,6 +100,24 @@ func TestCheckConfigFile(t *testing.T) {
 			expected: fmt.Errorf("[E007] Line 4 is too long: 90 > 40"),
 		},
 		{
+			file:     "e008a.conf",
+			indent:   "  ",
+			maxLine:  40,
+			expected: fmt.Errorf("[E008] Unexpected '{' at line 1"),
+		},
+		{
+			file:     "e008b.conf",
+			indent:   "  ",
+			maxLine:  40,
+			expected: fmt.Errorf("[E008] Unexpected '{' at line 5"),
+		},
+		{
+			file:     "e008c.conf",
+			indent:   "  ",
+			maxLine:  40,
+			expected: fmt.Errorf("[E008] Unexpected '{' at line 1"),
+		},
+		{
 			file:     "f001a.conf",
 			indent:   "  ",
 			maxLine:  80,

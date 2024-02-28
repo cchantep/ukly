@@ -335,6 +335,32 @@ func checkNonCommentLine(
 		} else if ch == '}' && inVariableDecl {
 			inVariableDecl = false
 		} else if ch == '{' || ch == '[' {
+			e008 := func() error {
+				// No space or $ at previous character
+				return fmt.Errorf("[E008] Unexpected '%s' at line %d", string(ch), lineNumber)
+			}
+
+			if i < 2 {
+				return e008()
+			}
+
+			prev := line[i-1]
+
+			if ch == '{' && (prev != ' ' && prev != '\t' && prev != '$') {
+				return e008()
+			}
+
+			prevprev := line[i-2]
+
+			if prev != '$' && prevprev != ':' && prevprev != '=' &&
+				(prevprev < '0' ||
+					(prevprev > '9' && prevprev < 'A') ||
+					(prevprev > 'Z' && prevprev < 'a') ||
+					prevprev > 'z') &&
+				len(strings.TrimLeft(line[0:i-1], indent)) > 0 {
+				return e008()
+			}
+
 			nextLineChange++
 
 			if ch == '{' {
